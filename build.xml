@@ -1,0 +1,16 @@
+<project name="josep" default="josep">
+	<target name="clean">
+		<delete dir="build"/>
+	</target>
+
+	<target name="compile">
+		<mkdir dir="build"/>
+		<javac srcdir="src" destdir="build" classpath="/opt/jolie/jolie.jar" includeantruntime="false"/>
+	</target>
+
+	<target name="josep" depends="compile">
+		<mkdir dir="lib"/>
+		<jar destfile="lib/josep.jar" basedir="build">
+		</jar>
+	</target>
+</project>
