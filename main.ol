@@ -45,13 +45,19 @@ define buildPages {
 	listreq.directory = ContentDirectory;
 	list@File(listreq)(listres);
 	for(i = 0, i < #listres.result, i++) {
-		file.filename = ContentDirectory + listres.result[i];
-		readFile@File(file)(contents);
-		compile@Josep(contents)(code);
+		endsWithReq = listres.result[i];
+		endsWithReq.suffix = ".ol";
+		endsWith@StringUtils(endsWithReq)(isService);
 
-		writefile.content = code;
-		writefile.filename = ServicesDirectory + listres.result[i];
-		writeFile@File(writefile)()
+		if(isService) {
+			file.filename = ContentDirectory + listres.result[i];
+			readFile@File(file)(contents);
+			compile@Josep(contents)(code);
+
+			writefile.content = code;
+			writefile.filename = ServicesDirectory + listres.result[i];
+			writeFile@File(writefile)()
+		}
 	}
 }
 
@@ -61,7 +67,7 @@ main {
 			install(FileNotFound =>
 				println@Console("File not found: " + file.filename)()
 			);
-
+			
 			s = request.operation;
 			s.regex = "\\?";
 			split@StringUtils(s)(s);

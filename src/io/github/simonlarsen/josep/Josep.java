@@ -4,6 +4,7 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.ArrayList;
 
 public class Josep extends JavaService {
 	private static final String TAG_PATTERN = "\\<\\?jolie\\s*([^\\?]*?)\\s*\\?\\>";
@@ -13,31 +14,50 @@ public class Josep extends JavaService {
 	private void addHTML(String text, StringBuilder builder) {
 		builder.append("\tprintln@Page(\"");
 		text = text.replaceAll("\\n", "\\\\n");
+		text = text.replaceAll("\"", "\\\\\"");
 		builder.append(text);
 		builder.append("\t\")();\n");
 	}
 
 	public String compile(Value request) {
-		String contents = request.strValue();
-		StringBuilder builder = new StringBuilder();
+		ArrayList<String> includes = new ArrayList<String>();
 
-		builder.append(HEADER);
+		String contents = request.strValue();
+		StringBuilder output = new StringBuilder();
+		StringBuilder code = new StringBuilder();
 
 		Pattern pattern = Pattern.compile(TAG_PATTERN);
 		Matcher matcher = pattern.matcher(contents);
 
+		// Parse <?jolie ... ?> blocks
 		int i = 0;
 		while(matcher.find()) {
-			String code = matcher.group(1);
-			addHTML(contents.substring(i, matcher.start()), builder);
-			builder.append(code);
-			builder.append("\n");
+			String block = matcher.group(1);
+			addHTML(contents.substring(i, matcher.start()), code);
+
+			// Include statement
+			if(block.startsWith("@include")) {
+				String[] parts = block.split("\"");
+				includes.add(parts[1]);
+				System.out.println(parts[1]);
+			}
+			// Regular code segment
+			else {
+				code.append(block);
+				code.append("\n");
+			}
 			i = matcher.end();
 		}
-		addHTML(contents.substring(i, contents.length()), builder);
+		addHTML(contents.substring(i, contents.length()), code);
 
-		builder.append(FOOTER);
+		// Assemble service
+		for(String include : includes) {
+			output.append(String.format("include \"%s\"\n", include));
+		}
+		output.append(HEADER);
+		output.append(code.toString());
+		output.append(FOOTER);
 
-		return builder.toString();
+		return output.toString();
 	}
 }

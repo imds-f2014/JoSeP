@@ -1,14 +1,14 @@
+<?jolie @include "time.iol" ?>
+
 <!DOCTYPE html>
 <html>
 	<head>
+		<link rel="stylesheet" type="text/css" href="style.css" />
 	</head>
 	<body>
-		<?jolie 
-			println@Page("<h1>Heading</h1>")();
-		?>
-		<p>This is static.</p>
 		<?jolie
-			println@Page("<p>Hello, World!")();
+			getCurrentDateTime@Time()(datetime);
+			println@Page("<p>Current time: " + datetime)();
 		?>
 	</body>
 </html>
