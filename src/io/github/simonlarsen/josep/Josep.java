@@ -7,13 +7,16 @@ import java.util.regex.Matcher;
 import java.util.ArrayList;
 
 public class Josep extends JavaService {
-	private static final String TAG_PATTERN = "\\<\\?jolie\\s*([^\\?]*?)\\s*\\?\\>";
+	private static final String TAG_PATTERN = "\\s*\\<%\\s*([^%]*?)\\s*%\\>\\s*";
 	private static final String HEADER = "include \"service_base.iol\"\ndefine operations {\n";
 	private static final String FOOTER = "\tnullProcess\n}";
 
 	private void addHTML(String text, StringBuilder builder) {
+		if(text.length() == 0) return;
+
 		builder.append("\tprintln@Page(\"");
 		text = text.replaceAll("\\n", "\\\\n");
+		text = text.replaceAll("\\t", "\\\\t");
 		text = text.replaceAll("\"", "\\\\\"");
 		builder.append(text);
 		builder.append("\t\")();\n");
@@ -29,7 +32,7 @@ public class Josep extends JavaService {
 		Pattern pattern = Pattern.compile(TAG_PATTERN);
 		Matcher matcher = pattern.matcher(contents);
 
-		// Parse <?jolie ... ?> blocks
+		// Parse <% ... %> blocks
 		int i = 0;
 		while(matcher.find()) {
 			String block = matcher.group(1);
@@ -39,7 +42,6 @@ public class Josep extends JavaService {
 			if(block.startsWith("@include")) {
 				String[] parts = block.split("\"");
 				includes.add(parts[1]);
-				System.out.println(parts[1]);
 			}
 			// Regular code segment
 			else {

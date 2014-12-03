@@ -1,4 +1,4 @@
-<?jolie @include "time.iol" ?>
+<% @include "time.iol" %>
 
 <!DOCTYPE html>
 <html>
@@ -6,9 +6,9 @@
 		<link rel="stylesheet" type="text/css" href="style.css" />
 	</head>
 	<body>
-		<?jolie
+		<%
 			getCurrentDateTime@Time()(datetime);
-			println@Page("<p>Current time: " + datetime)();
-		?>
+			println@Page("<p>Current time: " + datetime + "</p>")();
+		%>
 	</body>
 </html>
