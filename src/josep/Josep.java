@@ -8,26 +8,50 @@ import java.util.ArrayList;
 
 public class Josep extends JavaService {
 	private static final String TAG_PATTERN = "\\s*\\<%\\s*([^%]*?)\\s*%\\>\\s*";
+	private static final String INCLUDE_PATTERN = "\\s*@include \\\"([^\\)]*?)\\\"\\s*";
+	private static final String PRINT_PATTERN = "@print (.*?);";
+
 	private static final String HEADER = "include \"service_base.iol\"\ndefine operations {\n";
 	private static final String FOOTER = "\tnullProcess\n}";
 
-	private void addHTML(String text, StringBuilder builder) {
+	private StringBuilder output, code;
+	ArrayList<String> includes;
+
+	private void addHTML(String text) {
 		if(text.length() == 0) return;
 
-		builder.append("\tdocument += \"");
+		code.append("\tdocument += \"");
 		text = text.replaceAll("\\n", "\\\\n");
 		text = text.replaceAll("\\t", "\\\\t");
 		text = text.replaceAll("\"", "\\\\\"");
-		builder.append(text);
-		builder.append("\";\n");
+		code.append(text);
+		code.append("\";\n");
+	}
+
+	private String parse(String text) {
+		text = text.replaceAll("@print", "document +=");
+
+		return parseIncludes(text);
+	}
+
+	private String parseIncludes(String text) {
+		Pattern pattern = Pattern.compile(INCLUDE_PATTERN); 
+		Matcher matcher = pattern.matcher(text);
+
+		while(matcher.find()) {
+			includes.add(matcher.group(1));
+		}
+
+		
+		return text.replaceAll(INCLUDE_PATTERN, "");
 	}
 
 	public String compile(Value request) {
-		ArrayList<String> includes = new ArrayList<String>();
-
 		String contents = request.strValue();
-		StringBuilder output = new StringBuilder();
-		StringBuilder code = new StringBuilder();
+
+		includes = new ArrayList<String>();
+		output = new StringBuilder();
+		code = new StringBuilder();
 
 		Pattern pattern = Pattern.compile(TAG_PATTERN);
 		Matcher matcher = pattern.matcher(contents);
@@ -36,21 +60,13 @@ public class Josep extends JavaService {
 		int i = 0;
 		while(matcher.find()) {
 			String block = matcher.group(1);
-			addHTML(contents.substring(i, matcher.start()), code);
+			addHTML(contents.substring(i, matcher.start()));
 
-			// Include statement
-			if(block.startsWith("@include")) {
-				String[] parts = block.split("\"");
-				includes.add(parts[1]);
-			}
-			// Regular code segment
-			else {
-				code.append(block);
-				code.append("\n");
-			}
+			code.append(parse(block));
+			code.append("\n");
 			i = matcher.end();
 		}
-		addHTML(contents.substring(i, contents.length()), code);
+		addHTML(contents.substring(i, contents.length()));
 
 		// Assemble service
 		for(String include : includes) {
