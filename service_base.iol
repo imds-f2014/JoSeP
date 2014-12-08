@@ -1,7 +1,7 @@
 include "runtime.iol"
 include "page_interface.iol"
 
-execution { concurrent }
+execution { single }
 
 inputPort Local {
 	Location: "local"
@@ -14,16 +14,12 @@ outputPort Page {
 
 init {
 	getLocalLocation@Runtime()(Page.location);
-	global.content = ""
+	document = ""
 }
 
 main {
-	[ println(text)() {
-		global.content += text+"\n"	}
-	] { nullProcess }
-
-	[ getDocument(request)(response) {
+	getDocument(request)(response) {
 		operations;
-		response = global.content
-	} ] { nullProcess }
+		response = document
+	}
 }

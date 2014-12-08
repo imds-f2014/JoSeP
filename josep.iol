@@ -7,5 +7,5 @@ outputPort Josep {
 }
 
 embedded {
-	Java: "io.github.simonlarsen.josep.Josep" in Josep
+	Java: "josep.Josep" in Josep
 }

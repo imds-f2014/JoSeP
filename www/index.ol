@@ -8,7 +8,8 @@
 	<body>
 		<%
 			getCurrentDateTime@Time()(datetime);
-			println@Page("<p>Current time: " + datetime + "</p>")();
+			document += "<p>Current time: " + datetime + "</p>\n";
+			document += "<p>x = " + request.x + "</p>\n";
 		%>
 	</body>
 </html>

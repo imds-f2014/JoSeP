@@ -1,5 +1,6 @@
 include "console.iol"
 include "file.iol"
+include "file_utils.iol"
 include "runtime.iol"
 include "string_utils.iol"
 include "protocols/http.iol"
@@ -33,29 +34,28 @@ outputPort Page {
 	Interfaces: PageInterface
 }
 
-init {
-	buildPages
-}
+define buildService {
+	isUpdated = false;
 
-/**
- * Compiles all .ol files in ContentDirectory into Jolie services
- * with same path in ServicesDirectory.
- */
-define buildPages {
-	listreq.directory = ContentDirectory;
-	list@File(listreq)(listres);
-	for(i = 0, i < #listres.result, i++) {
-		endsWithReq = listres.result[i];
-		endsWithReq.suffix = ".ol";
-		endsWith@StringUtils(endsWithReq)(isService);
+	exists@File(ServicesDirectory + path)(serviceExists);
+	if(serviceExists) {
+		getLastModified@FileUtils(ContentDirectory + path)(pageModified);
+		getLastModified@FileUtils(ServicesDirectory + path)(serviceModified);
 
-		if(isService) {
-			file.filename = ContentDirectory + listres.result[i];
+		if(serviceModified >= pageModified) {
+			isUpdated = true
+		}
+	};
+
+	if(isUpdated == false) {
+		synchronized(compile) {
+			println@Console("Recompiling " + path)();
+			file.filename = ContentDirectory + path;
 			readFile@File(file)(contents);
 			compile@Josep(contents)(code);
 
 			writefile.content = code;
-			writefile.filename = ServicesDirectory + listres.result[i];
+			writefile.filename = ServicesDirectory + path;
 			writeFile@File(writefile)()
 		}
 	}
@@ -73,24 +73,27 @@ main {
 			split@StringUtils(s)(s);
 			
 			// Default page
-			if (s.result[0] == "") {
-				s.result[0] = DefaultPage
+			path = s.result[0];
+			if (path == "") {
+				path = DefaultPage
 			};
 
 			// Check file ending
-			endsWithReq = s.result[0];
+			endsWithReq = path;
 			endsWithReq.suffix = ".ol";
 			endsWith@StringUtils(endsWithReq)(isService);
 
 			if(isService) {
+				buildService;
+
 				service.type = "jolie";
-				service.filepath = ServicesDirectory + s.result[0];
+				service.filepath = ServicesDirectory + path;
 				loadEmbeddedService@Runtime(service)(Page.location);
 
-				getDocument@Page(request)(response);
+				getDocument@Page(request.data)(response);
 				format = "html"
 			} else {
-				file.filename = ContentDirectory + s.result[0];
+				file.filename = ContentDirectory + path;
 
 				getMimeType@File(file.filename)(mime);
 				mime.regex = "/";

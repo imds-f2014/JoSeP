@@ -1,4 +1,4 @@
-package io.github.simonlarsen.josep;
+package josep;
 
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
@@ -14,12 +14,12 @@ public class Josep extends JavaService {
 	private void addHTML(String text, StringBuilder builder) {
 		if(text.length() == 0) return;
 
-		builder.append("\tprintln@Page(\"");
+		builder.append("\tdocument += \"");
 		text = text.replaceAll("\\n", "\\\\n");
 		text = text.replaceAll("\\t", "\\\\t");
 		text = text.replaceAll("\"", "\\\\\"");
 		builder.append(text);
-		builder.append("\t\")();\n");
+		builder.append("\";\n");
 	}
 
 	public String compile(Value request) {
