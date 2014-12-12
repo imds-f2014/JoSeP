@@ -7,5 +7,5 @@ outputPort Josep {
 }
 
 embedded {
-	Java: "josep.Josep" in Josep
+	Java: "josep.runtime.Compiler" in Josep
 }

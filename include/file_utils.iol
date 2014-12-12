@@ -7,5 +7,5 @@ outputPort FileUtils {
 }
 
 embedded {
-	Java: "io.FileUtils" in FileUtils
+	Java: "josep.io.FileUtils" in FileUtils
 }

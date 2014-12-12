@@ -1,4 +1,4 @@
-package io;
+package josep.io;
 
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
